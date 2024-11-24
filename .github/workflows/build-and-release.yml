@@ -34,7 +34,9 @@ jobs:
 
       - name: Get version
         id: publish
-        run: echo "version=$(./backdrop -v | cut -d " " -f3)" >> $GITHUB_OUTPUT
+        run: |
+          version=$(./backdrop -v | cut -d " " -f3)
+          echo "version=$version" >> $GITHUB_OUTPUT
 
   release:
     needs: version
@@ -46,7 +48,7 @@ jobs:
       - name: Get Code
         uses: actions/checkout@v4
 
-      - name: version verification
+      - name: Version verification
         run: echo "Version to release:" "${{ needs.version.outputs.backdrop-version }}"
 
       - name: Create Release
@@ -79,36 +81,32 @@ jobs:
       - name: Debug version in Artifacts job
         run: echo "Artifacts job version:" "${{ needs.version.outputs.backdrop-version }}"
 
-      # Build artifacts
-      - name: build artifact
+      - name: Build Linux Artifact
         run: go build
 
       - name: Build Windows Artifact
         run: GOOS=windows GOARCH=amd64 go build -o backdrop.exe
 
-      # Compress the artifacts
       - name: Compress Linux Artifact
         run: tar -czvf backdrop-gnome-desktop-v${{ needs.version.outputs.backdrop-version }}.linux-amd64.tar.gz backdrop
 
       - name: Compress Windows Artifact
         run: zip backdrop-v${{ needs.version.outputs.backdrop-version }}.windows-amd64.zip backdrop.exe
 
-      # Upload Linux artifact
-      - name: upload linux artifact
+      - name: Upload Linux Artifact
         uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.release.outputs.upload_url }}
           asset_path: backdrop-gnome-desktop-v${{ needs.version.outputs.backdrop-version }}.linux-amd64.tar.gz
           asset_name: backdrop-gnome-desktop-v${{ needs.version.outputs.backdrop-version }}.linux-amd64.tar.gz
           asset_content_type: application/gzip
 
-      # Upload Windows artifact
       - name: Upload Windows Artifact
         uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.release.outputs.upload_url }}
           asset_path: backdrop-v${{ needs.version.outputs.backdrop-version }}.windows-amd64.zip
