@@ -1,7 +1,7 @@
 name: Create Release
 
 on:
-  pull_request:
+  [pull_request, workflow_dispatch]:
     types:
       - closed
     branches:
@@ -74,6 +74,9 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go-version }}
+
+      - name: Debug version in Artifacts job
+        run: echo "Artifacts job version:" "${{ needs.version.outputs.backdrop-version }}"
 
       # Build artifacts
       - name: build artifact
